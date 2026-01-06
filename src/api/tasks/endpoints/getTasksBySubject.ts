@@ -4,7 +4,7 @@ import type { GetTasksBySubjectResponseDto } from "../dto/response.dto";
 
 export async function getTasksBySubject(subjectId: string): Promise<Task[]> {
 
-  const axiosResponse = await tasksApi.get<GetTasksBySubjectResponseDto>(`/tasks/by-subject/${subjectId}`);
+  const axiosResponse = await tasksApi.get<GetTasksBySubjectResponseDto>(`/tasks/subject/${subjectId}`);
 
   return axiosResponse.data.tasks.map(task => new Task(
     task.id,

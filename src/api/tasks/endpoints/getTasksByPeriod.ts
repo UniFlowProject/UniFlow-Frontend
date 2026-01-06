@@ -4,7 +4,7 @@ import { Task, TaskPriority, TaskStatus } from "@/domain/tasks";
 
 export async function getTasksByPeriod(periodId: string): Promise<Task[]> {
 
-  const axiosResponse = await tasksApi.get<GetTasksByPeriodResponseDto>(`/tasks/by-period/${periodId}`);
+  const axiosResponse = await tasksApi.get<GetTasksByPeriodResponseDto>(`/tasks/period/${periodId}`);
 
   return axiosResponse.data.tasks.map(task => new Task(
     task.id,

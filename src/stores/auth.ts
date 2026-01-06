@@ -20,9 +20,9 @@ const OAUTH_CONFIG: Record<"google", ProviderConfig> = {
     redirectUri: `${window.location.origin}/auth/callback`,
     scope: 'openid email profile',
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    tokenUrl: env.VITE_ACADEMIC_SERVICE_URL + '/auth/google/callback',
+    tokenUrl: env.VITE_ACADEMIC_SERVICE_URL + '/v1/auth/google/callback',
     // tokenUrl: 'https://oauth2.googleapis.com/token',
-    userInfoUrl: env.VITE_ACADEMIC_SERVICE_URL + '/students/me'
+    userInfoUrl: env.VITE_ACADEMIC_SERVICE_URL + '/v1/students/me'
   }
 }
 
@@ -30,16 +30,15 @@ interface AuthState {
   // Estado
   authToken: string | null
   userInfo: any | null
-  provider: 'google' | null
   loading: boolean
   error: string | null
 
   // Getters computados
   isAuthenticated: () => boolean
   // Funciones
-  loginWithProvider: (provider: 'google') => Promise<void>
-  exchangeCodeForToken: (provider: 'google', code: string, config: ProviderConfig) => Promise<any>
-  getUserInfo: (provider: 'google', accessToken: string, config: any) => Promise<any>
+  loginWithGoogle: () => Promise<void>
+  exchangeCodeForToken: (code: string, config: ProviderConfig) => Promise<any>
+  getUserInfo: (accessToken: string, config: any) => Promise<any>
   handleOAuthCallback: () => Promise<boolean>
   makeAuthenticatedRequest: (url: string, options?: RequestInit) => Promise<any>
   logout: () => void
@@ -54,24 +53,17 @@ export const useAuthStore = create<AuthState>()(
       // Estado
       authToken: null,
       userInfo: null,
-      provider: null,
       loading: false,
       error: null,
 
       // Getters computados
       isAuthenticated: () => !!get().authToken,
-
-      // Función para iniciar login con un provider
-      loginWithProvider: async (providerName) => {
-        const config = OAUTH_CONFIG[providerName]
-        if (!config) {
-          set({ error: 'Provider no configurado' })
-          return
-        }
+      loginWithGoogle: async () => {
+        const config = OAUTH_CONFIG['google']
 
         try {
           // Generar state único para CSRF protection
-          const state = `${providerName}:${Math.random().toString(36).substring(2)}`
+          const state = `google:${Math.random().toString(36).substring(2)}`
           sessionStorage.setItem('oauth_state', state)
 
           const params = new URLSearchParams({
@@ -79,11 +71,9 @@ export const useAuthStore = create<AuthState>()(
             redirect_uri: config.redirectUri,
             scope: config.scope,
             state,
-            ...(providerName === 'google' && {
-              response_type: 'code',
-              access_type: 'offline',
-              prompt: 'consent'
-            })
+            response_type: 'code',
+            access_type: 'offline',
+            prompt: 'consent'
           })
 
           const authUrl = `${config.authUrl}?${params.toString()}`
@@ -94,23 +84,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Intercambiar código por token
-      exchangeCodeForToken: async (providerName, code, config) => {
-        let body: BodyInit;
-        if (providerName === "google") {
-          body = JSON.stringify({ code, redirectUri: config.redirectUri })
-          // const params = new URLSearchParams({
-          //   client_id: config.clientId,
-          //   client_secret: config.clientSecret,
-          //   code,
-          //   redirect_uri: config.redirectUri,
-          //   grant_type: 'authorization_code'
-          // });
-          // body = params;
-        } else {
-          body = JSON.stringify({ code });
-        }
+      exchangeCodeForToken: async (code, config) => {
+        let body: BodyInit = JSON.stringify({ code, redirectUri: config.redirectUri });
 
-        const requestInit: RequestInit = providerName === 'google' ? {
+        const requestInit: RequestInit = {
           method: 'POST',
           headers: {
             // 'Content-Type': 'application/x-www-form-urlencoded',
@@ -118,17 +95,8 @@ export const useAuthStore = create<AuthState>()(
             'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN,
           },
           body
-        } : {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN,
-          },
-          body
         }
 
-        console.log("Request Init:", requestInit);
         const response = await fetch(config.tokenUrl, requestInit)
 
         if (!response.ok) {
@@ -146,11 +114,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Obtener información del usuario
-      getUserInfo: async (providerName, accessToken, config) => {
-        if (providerName !== 'google') {
-          throw new Error('Provider no soportado para obtener info de usuario')
-        }
-
+      getUserInfo: async (accessToken, config) => {
         const headers = {
           'Authorization': `Bearer ${accessToken}`,
           'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN,
@@ -173,8 +137,6 @@ export const useAuthStore = create<AuthState>()(
         const code = urlParams.get('code')
         const state = urlParams.get('state')
 
-        console.log('state', state?.split(':'))
-
         if (!code || !state) return false
 
         set({ loading: true, error: null })
@@ -186,27 +148,33 @@ export const useAuthStore = create<AuthState>()(
             throw new Error('State mismatch - posible ataque CSRF')
           }
 
+          // set({
+          //   authToken: "1a2b3c4d5e6f7g8h9i0j", // Simulado
+          //   userInfo: {
+          //     id: "test-user-123",
+          //     name: "Usuario de Prueba",
+          //     email: "usuario@prueba.com"
+
+          //   },
+          //   loading: false,
+          //   error: null
+          // })
+
+          // return true;
+
           // Extraer provider del state
-          const currentProvider = state.split(':')[0] as 'google'
-          const config = OAUTH_CONFIG[currentProvider]
-
-          console.log('Current Provider:', currentProvider)
-
-          if (!config) {
-            throw new Error('Provider no válido')
-          }
+          const config = OAUTH_CONFIG["google"]
 
           // Intercambiar código por token
-          const tokenData = await get().exchangeCodeForToken(currentProvider, code, config)
+          const tokenData = await get().exchangeCodeForToken(code, config)
 
           // Obtener información del usuario
-          const userData = await get().getUserInfo(currentProvider, tokenData.access_token, config)
+          const userData = await get().getUserInfo(tokenData.access_token, config)
 
           // Actualizar estado
           set({
             authToken: tokenData.access_token,
             userInfo: userData,
-            provider: currentProvider,
             loading: false,
             error: null
           })
@@ -231,7 +199,7 @@ export const useAuthStore = create<AuthState>()(
 
       // Función para hacer requests autenticados
       makeAuthenticatedRequest: async (url, options = {}) => {
-        const { authToken, provider } = get()
+        const { authToken } = get()
 
         if (!authToken) {
           throw new Error('No hay token de autenticación disponible')
@@ -242,7 +210,7 @@ export const useAuthStore = create<AuthState>()(
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
-            'X-Auth-Provider': provider || 'unknown',
+            'X-Auth-Provider': 'google',
             ...options.headers
           }
         })
@@ -259,7 +227,6 @@ export const useAuthStore = create<AuthState>()(
         set({
           authToken: null,
           userInfo: null,
-          provider: null,
           error: null
         })
         sessionStorage.removeItem('oauth_state')
@@ -270,15 +237,15 @@ export const useAuthStore = create<AuthState>()(
 
       // Función para refrescar datos del usuario
       refreshUserInfo: async () => {
-        const { authToken, provider } = get()
+        const { authToken } = get()
 
-        if (!authToken || !provider) return
+        if (!authToken) return
 
         set({ loading: true })
 
         try {
-          const config = OAUTH_CONFIG[provider]
-          const userData = await get().getUserInfo(provider, authToken, config)
+          const config = OAUTH_CONFIG["google"]
+          const userData = await get().getUserInfo(authToken, config)
           set({ userInfo: userData, loading: false })
         } catch (error) {
           console.error('Error refrescando datos:', error)
@@ -292,7 +259,6 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         authToken: state.authToken,
         userInfo: state.userInfo,
-        provider: state.provider
       })
     }
   )

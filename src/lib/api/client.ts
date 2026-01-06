@@ -68,8 +68,8 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   return client
 }
 
-const academicApi = createApiClient(API_ENDPOINTS.academic.base + "/v2")
-const tasksApi = createApiClient(API_ENDPOINTS.tasks.base + "/v2")
+const academicApi = createApiClient(env.VITE_ACADEMIC_SERVICE_URL + "/v1")
+const tasksApi = createApiClient(env.VITE_ACADEMIC_SERVICE_URL + "/v1")
 const notificationsApi = createApiClient(API_ENDPOINTS.notifications.base + "/v2")
 
 export { academicApi, tasksApi, notificationsApi }

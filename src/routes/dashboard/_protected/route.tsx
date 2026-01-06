@@ -64,7 +64,7 @@ function RouteComponent() {
 
       {/* Desktop Layout - hidden on mobile */}
       <div className='hidden md:flex items-center gap-4'>
-        <NotificationPopover />
+        {/* <NotificationPopover /> */}
         <ThemeSwitch />
         {
           userQuery.isLoading && <div className='flex items-center gap-2'>
@@ -88,9 +88,9 @@ function RouteComponent() {
 
       {/* Mobile Layout - dropdown menu */}
       <div className='md:hidden flex items-center gap-2'>
-        <span className='mr-4'>
+        {/* <span className='mr-4'>
           <NotificationPopover />
-        </span>
+        </span> */}
         {!userQuery.isLoading && (
           <Avatar className='rounded-lg h-8 w-8'>
             <AvatarImage src={userQuery.data?.avatar} />
