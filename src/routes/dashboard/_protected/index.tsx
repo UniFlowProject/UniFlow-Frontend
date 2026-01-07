@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import SectionTitle from '@/components/SectionTitle'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { CheckCircle2Icon, Plus } from 'lucide-react'
 import DashboardTaskCard from '@/components/tasks/DashboardTaskCard'
 import { PeriodCard } from '@/components/periods/PeriodCard'
 import { usePeriods } from '@/hooks/periods'
@@ -9,9 +9,14 @@ import { DashboardTaskCardSkeleton } from '@/components/tasks/DashboardTaskCardS
 import { useDashboardTasks } from '@/hooks/tasks/useDashboardTasks'
 import { PeriodCardSkeleton } from '@/components/periods/PeriodCardSkeleton'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { createDashboardTasksOptions } from '@/lib/queryOptions'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export const Route = createFileRoute('/dashboard/_protected/')({
   component: RouteComponent,
+  loader({ context }) {
+    context.queryClient.ensureQueryData(createDashboardTasksOptions());
+  },
 })
 
 function RouteComponent() {
@@ -79,7 +84,11 @@ function RouteComponent() {
         }
 
         {
-          !tasksQuery.isLoading && tasksQuery.data.length === 0 && <div className='text-red-500'>No hay tareas disponibles</div>
+          !tasksQuery.isLoading && tasksQuery.data.length === 0 && <Alert>
+            <CheckCircle2Icon />
+            <AlertTitle>Vaya, parece que has terminado todas las asignaciones para esta semana.</AlertTitle>
+            <AlertDescription>Toma un merecido descanso</AlertDescription>
+          </Alert>
         }
 
         {

@@ -1,11 +1,8 @@
-import { getAllPeriods } from "@/api/periods";
+import { createPeriodsQueryOptions } from "@/lib/queryOptions";
 import { useQuery } from "@tanstack/react-query";
 
 export function usePeriods() {
-  const periodsQuery = useQuery({
-    queryKey: ["periods"],
-    queryFn: () => getAllPeriods({})
-  })
+  const periodsQuery = useQuery(createPeriodsQueryOptions());
 
   return periodsQuery;
 }

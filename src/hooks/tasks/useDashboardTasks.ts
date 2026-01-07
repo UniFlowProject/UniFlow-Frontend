@@ -1,14 +1,11 @@
-import { getDashboardTasks } from "@/api/tasks/endpoints/getDashboardTasks";
+import { createDashboardTasksOptions } from "@/lib/queryOptions";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 
 export function useDashboardTasks(initialLimit: number = 4) {
   const [visibleCount, setVisibleCount] = useState(initialLimit);
 
-  const tasksQuery = useQuery({
-    queryKey: ["dashboardTasks"],
-    queryFn: async () => (await getDashboardTasks()).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
-  });
+  const tasksQuery = useQuery(createDashboardTasksOptions());
 
   const visibleTasks = useMemo(() => {
     return tasksQuery.data?.slice(0, visibleCount) || [];
