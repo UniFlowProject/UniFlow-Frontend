@@ -1,29 +1,18 @@
-import { useAuth } from '@/hooks/auth'
-import { useAuthStore } from '@/stores/auth'
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/auth/callback')({
   component: OAuthCallbackHandler,
+  beforeLoad({ context }) {
+    if (context.auth.isAuthenticated()) throw redirect({ to: "/" });
+  },
+  loader({ context }) {
+    context.auth.handleOAuthCallback();
+  },
 })
 
-// Componente para manejar callbacks OAuth automáticamente
 function OAuthCallbackHandler() {
-
-  const navigate = Route.useNavigate()
-  const { isAuthenticated } = useAuth()
-
-  const handleOAuthCallback = useAuthStore(state => state.handleOAuthCallback)
-
-  useEffect(() => {
-    handleOAuthCallback()
-  }, [handleOAuthCallback])
-
-  if (isAuthenticated) {
-    navigate({ to: '/', replace: true })
-
-    return <div>Autenticación exitosa. Redirigiendo...</div>
-  }
-
-  return null
+  return <div className='h-dvh w-dvw flex flex-col gap-4 items-center justify-center'>
+    <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-primary mx-auto"></div>
+    <h1 className='text-xl'>Autenticando...</h1>
+  </div>
 }

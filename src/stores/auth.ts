@@ -26,7 +26,7 @@ const OAUTH_CONFIG: Record<"google", ProviderConfig> = {
   }
 }
 
-interface AuthState {
+export interface AuthState {
   // Estado
   authToken: string | null
   userInfo: any | null

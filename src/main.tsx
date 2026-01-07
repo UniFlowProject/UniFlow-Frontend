@@ -7,6 +7,7 @@ import * as TanStackQueryProvider from './integrations/tanstack-query/root-provi
 import { routeTree } from './routeTree.gen'
 
 import './styles.css'
+import { useAuthStore } from './stores/auth.ts'
 
 // Create a new router instance
 
@@ -15,6 +16,7 @@ const router = createRouter({
   routeTree,
   context: {
     ...TanStackQueryProviderContext,
+    auth: useAuthStore.getState()
   },
   defaultPreload: 'intent',
   scrollRestoration: true,
