@@ -1,4 +1,5 @@
 import { env } from '@/env'
+import { buildCognitoAuthorizeUrl, buildCognitoLogoutUrl, decodeJwt, exchangeCognitoCode, refreshCognitoTokens, type CognitoTokens } from '@/lib/cognito'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -29,22 +30,38 @@ const OAUTH_CONFIG: Record<"google", ProviderConfig> = {
 interface AuthState {
   // Estado
   authToken: string | null
+  refreshToken: string | null
+  tokenExpiresAt: number | null
   userInfo: any | null
-  provider: 'google' | null
+  provider: 'google' | 'cognito' | null
   loading: boolean
   error: string | null
 
   // Getters computados
   isAuthenticated: () => boolean
   // Funciones
-  loginWithProvider: (provider: 'google') => Promise<void>
+  loginWithProvider: (provider: 'google' | 'cognito') => Promise<void>
+  getValidAccessToken: () => Promise<string | null>
   exchangeCodeForToken: (provider: 'google', code: string, config: ProviderConfig) => Promise<any>
   getUserInfo: (provider: 'google', accessToken: string, config: any) => Promise<any>
   handleOAuthCallback: () => Promise<boolean>
   makeAuthenticatedRequest: (url: string, options?: RequestInit) => Promise<any>
-  logout: () => void
+  logout: () => Promise<void>
   clearError: () => void
   refreshUserInfo: () => Promise<void>
+}
+
+// Sesión derivada de los tokens de Cognito; userInfo sale de los claims del idToken
+const cognitoSession = (tokens: CognitoTokens) => {
+  const claims = decodeJwt(tokens.idToken)
+
+  return {
+    authToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken ?? null,
+    tokenExpiresAt: tokens.expiresAt,
+    provider: 'cognito' as const,
+    userInfo: { ...claims, id: claims.sub },
+  }
 }
 
 // Zustand store para autenticación
@@ -53,6 +70,8 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       // Estado
       authToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
       userInfo: null,
       provider: null,
       loading: false,
@@ -63,6 +82,15 @@ export const useAuthStore = create<AuthState>()(
 
       // Función para iniciar login con un provider
       loginWithProvider: async (providerName) => {
+        if (providerName === 'cognito') {
+          try {
+            window.location.href = await buildCognitoAuthorizeUrl()
+          } catch (error: unknown) {
+            set({ error: `Error iniciando login: ${error instanceof Error ? error.message : 'Unknown error'}` })
+          }
+          return
+        }
+
         const config = OAUTH_CONFIG[providerName]
         if (!config) {
           set({ error: 'Provider no configurado' })
@@ -187,7 +215,18 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Extraer provider del state
-          const currentProvider = state.split(':')[0] as 'google'
+          const currentProvider = state.split(':')[0] as 'google' | 'cognito'
+
+          if (currentProvider === 'cognito') {
+            const tokens = await exchangeCognitoCode(code)
+            set({ ...cognitoSession(tokens), loading: false, error: null })
+
+            sessionStorage.removeItem('oauth_state')
+            sessionStorage.removeItem('pkce_verifier')
+            window.history.replaceState({}, document.title, window.location.pathname)
+            return true
+          }
+
           const config = OAUTH_CONFIG[currentProvider]
 
           console.log('Current Provider:', currentProvider)
@@ -255,14 +294,47 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // Función para logout
-      logout: () => {
+      logout: async () => {
+        try {
+        const href = await buildCognitoLogoutUrl()
+
         set({
           authToken: null,
+          refreshToken: null,
+          tokenExpiresAt: null,
           userInfo: null,
           provider: null,
           error: null
         })
         sessionStorage.removeItem('oauth_state')
+          sessionStorage.removeItem('pkce_verifier')
+          window.location.href = href
+        } catch (error) {
+          console.error('Error al cerrar sesión:', error)
+        }
+      },
+
+      // Devuelve el access token, refrescándolo si está por expirar (Cognito)
+      getValidAccessToken: async () => {
+        const { authToken, provider, refreshToken, tokenExpiresAt } = get()
+
+        if (provider !== 'cognito' || !tokenExpiresAt || tokenExpiresAt - Date.now() > 60_000) {
+          return authToken
+        }
+
+        if (!refreshToken) {
+          get().logout()
+          return null
+        }
+
+        try {
+          set(cognitoSession(await refreshCognitoTokens(refreshToken)))
+          return get().authToken
+        } catch (error) {
+          console.error('Error refrescando sesión de Cognito:', error)
+          get().logout()
+          return null
+        }
       },
 
       // Limpiar errores
@@ -272,7 +344,7 @@ export const useAuthStore = create<AuthState>()(
       refreshUserInfo: async () => {
         const { authToken, provider } = get()
 
-        if (!authToken || !provider) return
+        if (!authToken || provider !== 'google') return
 
         set({ loading: true })
 
@@ -291,6 +363,8 @@ export const useAuthStore = create<AuthState>()(
       // Solo persistir datos seguros (no el error ni loading)
       partialize: (state) => ({
         authToken: state.authToken,
+        refreshToken: state.refreshToken,
+        tokenExpiresAt: state.tokenExpiresAt,
         userInfo: state.userInfo,
         provider: state.provider
       })
