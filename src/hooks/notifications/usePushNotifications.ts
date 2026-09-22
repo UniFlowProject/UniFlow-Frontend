@@ -1,9 +1,9 @@
 import type { NotificationsCountResponseDto } from '@/api/notifications';
 import { env } from '@/env';
+import { useAuthStore } from '@/stores/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export interface SocketNotification {
@@ -22,44 +22,44 @@ export interface SocketNotification {
   scheduledFor: any
 }
 
+const WS_URL = env.VITE_NOTIFICATIONS_WEB_APP_URL || 'wss://9x02s2lrsg.execute-api.us-east-1.amazonaws.com/dev/';
+const MAX_RECONNECT_DELAY = 30_000;
+
+// API Gateway pushes raw frames (no event names), so accept either the
+// notification itself or an envelope like { event, data }.
+const parseNotification = (raw: unknown): SocketNotification | null => {
+  if (typeof raw !== 'string') return null;
+  try {
+    const msg = JSON.parse(raw);
+    const payload = msg?.data ?? msg?.payload ?? msg;
+    return payload?.title && payload?.id ? payload : null;
+  } catch {
+    return null;
+  }
+};
+
 export const usePushNotifications = (userId: string | null) => {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [isConnected, setIsConnected] = useState(false);
-  const isConnecting = useRef(false);
-  const socketRef = useRef<Socket | null>(null);
+  const isAuthenticated = useAuthStore(state => !!state.authToken);
 
   useEffect(() => {
-    if (!userId || isConnecting.current) return;
+    if (!userId || !isAuthenticated) return;
 
-    isConnecting.current = true;
+    let ws: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    let disposed = false;
 
-    // Conectar al WebSocket
-    const socketInstance = io(env.VITE_NOTIFICATIONS_WEB_APP_URL || 'http://localhost:3002', {
-      query: { userId },
-      transports: ['websocket'],
-    });
-
-    socketInstance.on('connect', () => {
-      console.log('✅ WebSocket conectado:', socketInstance.id);
-      setIsConnected(true);
-    });
-
-    socketInstance.on('disconnect', () => {
-      console.log('❌ WebSocket desconectado');
-      setIsConnected(false);
-    });
-
-    // Escuchar notificaciones
-    socketInstance.on('new_notification', (notification: SocketNotification) => {
+    const handleNotification = (notification: SocketNotification) => {
       console.log('📬 Nueva notificación:', notification);
 
       // 1️⃣ Invalidar queries para actualizar la lista
       qc.invalidateQueries({ queryKey: ['notifications', userId] });
-      // qc.invalidateQueries({ queryKey: ['notifications', 'unreadCount'] });
       qc.setQueryData(
         ['notifications', 'unreadCount'],
-        (old: NotificationsCountResponseDto) => ({ ...old, unreadCount: (old.unreadCount || 0) + 1 })
+        (old: NotificationsCountResponseDto) => ({ ...old, unreadCount: (old?.unreadCount || 0) + 1 })
       );
 
       // 2️⃣ Mostrar toast en la app
@@ -92,20 +92,49 @@ export const usePushNotifications = (userId: string | null) => {
           }
         });
       }
+    };
 
+    const connect = async () => {
+      const token = await useAuthStore.getState().getValidAccessToken();
+      if (!token || disposed) return;
 
-    });
+      const url = new URL(WS_URL);
+      url.searchParams.set('token', token);
+      ws = new WebSocket(url);
 
-    socketRef.current = socketInstance;
+      ws.onopen = () => {
+        console.log('✅ WebSocket conectado');
+        attempts = 0;
+        setIsConnected(true);
+      };
+
+      ws.onmessage = (event) => {
+        const notification = parseNotification(event.data);
+        if (notification) handleNotification(notification);
+      };
+
+      ws.onerror = (error) => console.error('WebSocket error:', error);
+
+      ws.onclose = () => {
+        console.log('❌ WebSocket desconectado');
+        setIsConnected(false);
+        ws = null;
+        if (disposed) return;
+        // API Gateway corta conexiones ociosas (10 min) y a las 2 h: reconectar
+        const delay = Math.min(1000 * 2 ** attempts++, MAX_RECONNECT_DELAY);
+        reconnectTimer = setTimeout(connect, delay);
+      };
+    };
+
+    connect();
 
     return () => {
       console.log('🧹 Limpiando socket...');
-      socketInstance.removeAllListeners();
-      socketInstance.disconnect();
-      isConnecting.current = false;
-      socketRef.current = null;
+      disposed = true;
+      clearTimeout(reconnectTimer);
+      ws?.close();
     };
-  }, [userId, navigate, qc]);
+  }, [userId, isAuthenticated, navigate, qc]);
 
   return {
     isConnected

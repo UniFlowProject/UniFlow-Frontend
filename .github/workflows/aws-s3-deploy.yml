@@ -9,6 +9,7 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     name: Build and Deploy to S3
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -37,6 +38,8 @@ jobs:
           VITE_TASKS_SERVICE_URL: ${{ vars.VITE_TASKS_SERVICE_URL }}
           VITE_NOTIFICATIONS_SERVICE_URL: ${{ vars.VITE_NOTIFICATIONS_SERVICE_URL }}
           VITE_NOTIFICATIONS_WEB_APP_URL: ${{ vars.VITE_NOTIFICATIONS_WEB_APP_URL }}
+          VITE_COGNITO_DOMAIN: ${{ vars.VITE_COGNITO_DOMAIN }}
+          VITE_COGNITO_CLIENT_ID: ${{ vars.VITE_COGNITO_CLIENT_ID }}
           VITE_APIM_TOKEN: ${{ secrets.VITE_APIM_TOKEN }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
