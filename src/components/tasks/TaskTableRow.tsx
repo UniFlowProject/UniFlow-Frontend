@@ -1,5 +1,5 @@
 import { Task } from "@/domain/tasks";
-import { useSubject } from "@/hooks/subjects";
+import { useCourse } from "@/hooks/courses";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "../ui/badge";
 import { Link } from "@tanstack/react-router";
@@ -9,7 +9,7 @@ import { TaskPriorityBadge } from "./TaskPriorityBadge";
 
 export const TaskTableRow = ({ task }: { task: Task }) => {
 
-  const { data: subject } = useSubject(task.subjectId);
+  const { data: course } = useCourse(task.courseId);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -43,9 +43,9 @@ export const TaskTableRow = ({ task }: { task: Task }) => {
       </div>
     </TableCell>
     <TableCell className="font-mono text-xs">
-      {!!subject && (
-        <Link to={`/dashboard/subjects/$subjectId`} params={{ subjectId: subject.id }} className="flex items-center gap-2 hover:text-blue-500 max-w-min">
-          {subject.name}
+      {!!course && (
+        <Link to={`/dashboard/courses/$courseId`} params={{ courseId: course.id }} className="flex items-center gap-2 hover:text-blue-500 max-w-min">
+          {course.name}
           <SquareArrowOutUpRight className="size-4" />
         </Link>
       )}

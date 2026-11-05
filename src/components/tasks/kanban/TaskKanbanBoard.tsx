@@ -37,14 +37,14 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
     description: "Tareas que están siendo trabajadas"
   },
   {
-    status: TaskStatus.DONE,
-    title: "Completadas",
-    description: "Tareas finalizadas"
+    status: TaskStatus.IN_REVIEW,
+    title: "En Revisión",
+    description: "Tareas pendientes de revisión"
   },
   {
-    status: TaskStatus.DELIVERED,
-    title: "Entregadas",
-    description: "Tareas entregadas al cliente"
+    status: TaskStatus.DONE,
+    title: "Completadas",
+    description: "Tareas finalizadas y entregadas"
   }
 ]
 

@@ -1,11 +1,11 @@
 import { Calendar } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import type { TaskWithSubject } from '@/domain/tasks/entities/taskWithSubject'
+import type { TaskWithCourse } from '@/domain/tasks/entities/taskWithCourse'
 import { TaskStatusBadge } from './TaskStatusBadge'
 import { TaskPriorityBadge } from './TaskPriorityBadge'
 
 interface Props {
-  task: TaskWithSubject
+  task: TaskWithCourse
   className?: string
 }
 
@@ -27,7 +27,7 @@ const DashboardTaskCard = ({ task }: Props) => {
             </div>
           </div>
           <span className={`text-muted-foreground text-sm sm:text-base md:text-lg `}>
-            {task.subjectName} | {task.subjectCode}
+            {task.courseName} | {task.courseCode}
           </span>
         </div>
         {/* <p className='text-muted-foreground mb-2 text-base'>{task.description}</p> */}

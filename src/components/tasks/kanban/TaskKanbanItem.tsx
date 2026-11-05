@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Task } from '@/domain/tasks'
 import { TaskStatus } from '@/domain/tasks'
 import { cn } from "@/lib/utils"
-import { useSubject } from "@/hooks/subjects"
+import { useCourse } from "@/hooks/courses"
 import { useDrag } from "@/hooks/drag-drop/useDrag"
 import { useMemo } from "react"
 
@@ -24,7 +24,7 @@ const formatDate = (date: Date) => {
 }
 
 export function TaskKanbanItem({ task, className }: TaskKanbanItemProps) {
-  const subjectQuery = useSubject(task.subjectId);
+  const courseQuery = useCourse(task.courseId);
 
   const { isBeingDragged, ...draggableProps } = useDrag({
     dragData: { taskId: task.id, taskStatus: task.status },
@@ -101,11 +101,11 @@ export function TaskKanbanItem({ task, className }: TaskKanbanItemProps) {
             {task.title}
           </h3>
 
-          {/* Subject */}
+          {/* Course */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
             <BookOpen className="size-3" />
             <span className="font-mono text-[10px] tracking-wider">
-              {subjectQuery.data?.getFullName()}
+              {courseQuery.data?.getFullName()}
             </span>
           </div>
         </CardHeader>

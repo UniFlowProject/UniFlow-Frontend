@@ -30,7 +30,7 @@ import {
 import { Task, TaskStatus } from '@/domain/tasks'
 import { TaskPriorityBadge } from '@/components/tasks/TaskPriorityBadge'
 import { TaskStatusBadge } from '@/components/tasks/TaskStatusBadge'
-import { useSubject } from '@/hooks/subjects'
+import { useCourse } from '@/hooks/courses'
 import { updateTaskStatus } from '@/api/tasks/endpoints/updateTaskState'
 import type { UpdateTaskStateResponseDto } from '@/api/tasks'
 import { toast } from 'sonner'
@@ -58,7 +58,7 @@ const formatDateTime = (date: Date) => {
 
 export function TaskDetail({ task }: { task: Task }) {
   const params = useParams({ from: "/dashboard/_protected/tasks/$taskId" })
-  const subjectQuery = useSubject(task.subjectId)
+  const courseQuery = useCourse(task.courseId)
 
   // TODO: Cambiar por task.id cuando se implemente el endpoint
   const queryClient = useQueryClient();
@@ -128,10 +128,6 @@ export function TaskDetail({ task }: { task: Task }) {
     changeTaskStatusMutation.mutate({ taskId: params.taskId, newStatus: TaskStatus.DONE });
   }
 
-  const handleDeliverTask = () => {
-    changeTaskStatusMutation.mutate({ taskId: params.taskId, newStatus: TaskStatus.DELIVERED });
-  }
-
   return (
     <div className="space-y-6 w-full">
       {/* Header */}
@@ -155,46 +151,46 @@ export function TaskDetail({ task }: { task: Task }) {
       {/* BentoGrid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 min-h-[600px] w-full">
 
-        {/* Subject Information - Large Card */}
+        {/* Course Information - Large Card */}
         <Card className="md:col-span-2 lg:col-span-2 xl:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
               <BookOpen className="h-5 w-5" />
-              Materia
+              Curso
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {subjectQuery.isLoading ? (
+            {courseQuery.isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-16" />
               </div>
-            ) : subjectQuery.data ? (
+            ) : courseQuery.data ? (
               <div className="space-y-3">
                 <div>
                   <p className="text-lg sm:text-xl font-bold text-foreground">
-                    {subjectQuery.data.getFormattedCode()}
+                    {courseQuery.data.getFormattedCode()}
                   </p>
                   <p className="text-sm sm:text-base font-medium text-muted-foreground">
-                    {subjectQuery.data.name}
+                    {courseQuery.data.name}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs sm:text-sm">
-                    {subjectQuery.data.credits} {subjectQuery.data.credits === 1 ? 'crédito' : 'créditos'}
+                    {courseQuery.data.credits} {courseQuery.data.credits === 1 ? 'crédito' : 'créditos'}
                   </span>
                 </div>
               </div>
             ) : (
-              <p className="text-xs sm:text-sm text-muted-foreground">No se pudo cargar la información de la materia</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">No se pudo cargar la información del curso</p>
             )}
           </CardContent>
           <CardFooter>
             <Button asChild>
-              <Link to="/dashboard/subjects/$subjectId" params={{ subjectId: task.subjectId }} className="w-full">
-                Ver Materia
+              <Link to="/dashboard/courses/$courseId" params={{ courseId: task.courseId }} className="w-full">
+                Ver Curso
               </Link>
             </Button>
           </CardFooter>
@@ -367,7 +363,7 @@ export function TaskDetail({ task }: { task: Task }) {
                 </>
               )}
               {task.status === TaskStatus.IN_REVIEW && (
-                <Button className="flex items-center gap-2 col-span-2" onClick={handleDeliverTask}>
+                <Button className="flex items-center gap-2 col-span-2" onClick={handleCompleteTask}>
                   <Send className="h-4 w-4" />
                   Entregar Tarea
                 </Button>
