@@ -57,7 +57,20 @@ pnpm install
 cp .env.example .env
 ```
 
-Editar `.env` con tus configuraciones:
+Editar `.env` con tus configuraciones. Cada servicio recibe **una URL base completa**; el código solo añade rutas de recurso (`/periods`, `/courses`, `/tasks`, `/notifications`...), nunca prefijo ni versión:
+
+| Variable | Descripción |
+|---|---|
+| `VITE_ACADEMIC_SERVICE_URL` | Base de academic (periodos, cursos y tareas). Ej.: `http://localhost:3001` directo, o `https://<gateway>/api/academic/v2` vía API Gateway |
+| `VITE_NOTIFICATIONS_SERVICE_URL` | Base de notifications. Ej.: `http://localhost:3003` o `https://<gateway>/api/notifications/v2` |
+| `VITE_NOTIFICATIONS_WEB_APP_URL` | URL del WebSocket/app de notificaciones |
+| `VITE_COGNITO_DOMAIN`, `VITE_COGNITO_CLIENT_ID` | Hosted UI de Cognito |
+| `VITE_APIM_TOKEN`, `VITE_GOOGLE_CLIENT_ID`, `VITE_GOOGLE_CLIENT_SECRET` | Requeridas por `src/env.ts` |
+
+### Prerrequisitos de producción
+
+- `VITE_ACADEMIC_SERVICE_URL` y `VITE_NOTIFICATIONS_SERVICE_URL` deben contener la URL base completa **incluyendo la versión `/v2`** (p. ej. `https://<gateway>/api/academic/v2`); si falta, las peticiones darán 404.
+- El workflow `.github/workflows/aws-s3-deploy.yml` se autentica por OIDC (sin llaves estáticas). Requiere la variable de repositorio `AWS_ROLE_ARN` con el ARN del rol creado en `terraform/oidc.tf` (ver `terraform/outputs.tf`), además de `AWS_REGION` y las variables `VITE_*` del environment `production`.
 
 4. Ejecutar en modo desarrollo
 ```bash
@@ -85,30 +98,29 @@ Abre tu navegador y ve a: [http://localhost:3000](http://localhost:3000)
 │   │   ├── 📁 periods/
 │   │   ├── 📁 shared/
 │   │   ├── 📁 students/
-│   │   ├── 📁 subjects/
 │   │   └── 📁 tasks/
 │   ├── 📁 components/
 │   │   ├── 📁 auth/
+│   │   ├── 📁 courses/
 │   │   ├── 📁 notifications/
 │   │   ├── 📁 periods/
 │   │   ├── 📁 students/
-│   │   ├── 📁 subjects/
 │   │   ├── 📁 tasks/
 │   │   ├── 📁 ui/
 │   │   ├── ... Otros componentes compartidos
 │   ├── 📁 domain/
 │   │   ├── 📁 auth/
+│   │   ├── 📁 courses/
 │   │   ├── 📁 notifications/
 │   │   ├── 📁 periods/
 │   │   ├── 📁 shared/
-│   │   ├── 📁 subjects/
 │   │   └── 📁 tasks/
 │   ├── 📁 hooks/
 │   │   ├── 📁 auth/
+│   │   ├── 📁 courses/
 │   │   ├── 📁 notifications/
 │   │   ├── 📁 periods/
 │   │   ├── 📁 students/
-│   │   ├── 📁 subjects/
 │   │   ├── 📁 tasks/
 │   │   └── ... Otros hooks genéricos
 │   ├── 📁 integrations/
@@ -128,7 +140,6 @@ Abre tu navegador y ve a: [http://localhost:3000](http://localhost:3000)
 │   │   ├── 📁 auth/
 │   │   ├── 📁 periods/
 │   │   ├── 📁 students/
-│   │   ├── 📁 subjects/
 │   │   ├── 📁 tasks/
 │   │   └── auth.ts
 │   ├── env.ts
