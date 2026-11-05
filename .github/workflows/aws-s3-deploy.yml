@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy to S3
     environment: production
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -33,9 +36,7 @@ jobs:
         run: pnpm build
         env:
           VITE_ENV: production
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_ACADEMIC_SERVICE_URL: ${{ vars.VITE_ACADEMIC_SERVICE_URL }}
-          VITE_TASKS_SERVICE_URL: ${{ vars.VITE_TASKS_SERVICE_URL }}
           VITE_NOTIFICATIONS_SERVICE_URL: ${{ vars.VITE_NOTIFICATIONS_SERVICE_URL }}
           VITE_NOTIFICATIONS_WEB_APP_URL: ${{ vars.VITE_NOTIFICATIONS_WEB_APP_URL }}
           VITE_COGNITO_DOMAIN: ${{ vars.VITE_COGNITO_DOMAIN }}
@@ -47,8 +48,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Deploy to S3

@@ -14,3 +14,8 @@ count.txt
 .env.production.local
 
 src/routeTree.gen.ts
+
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/crash.log
