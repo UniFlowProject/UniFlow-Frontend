@@ -5,7 +5,7 @@ export class Task {
   constructor(
     public readonly id: string,
     public title: string,
-    public readonly subjectId: string,
+    public readonly courseId: string,
     public dueDate: Date,
     public priority: TaskPriority,
     // public type: TaskType,
@@ -56,10 +56,6 @@ export class Task {
       throw new Error('Cannot start a completed task')
     }
 
-    if (this.status === TaskStatus.DELIVERED) {
-      throw new Error('Cannot start a delivered task')
-    }
-
     return this.updateStatus(TaskStatus.IN_PROGRESS)
   }
 
@@ -73,16 +69,6 @@ export class Task {
     return newTask
   }
 
-  deliver(): Task {
-    // if (this.status === TaskStatus.CANCELLED) {
-    //   throw new Error('Cannot complete a cancelled task')
-    // }
-
-    const newTask = this.updateStatus(TaskStatus.DELIVERED)
-    newTask.completedAt = new Date()
-    return newTask
-  }
-
   sendToReview(): Task {
     // if (this.status !== TaskStatus.IN_PROGRESS) {
     //   throw new Error('Can only send in-progress tasks to review')
@@ -92,18 +78,12 @@ export class Task {
   }
 
   updateStatus(newStatus: TaskStatus): Task {
-    if (newStatus === TaskStatus.DONE || TaskStatus.DELIVERED) {
-      this.completedAt = new Date();
-    } else {
-      this.completedAt = undefined;
-    }
-
-    console.log("Updated")
+    const completedAt = newStatus === TaskStatus.DONE ? new Date() : undefined
 
     return new Task(
       this.id,
       this.title,
-      this.subjectId,
+      this.courseId,
       this.dueDate,
       this.priority,
       // this.type,
@@ -117,7 +97,7 @@ export class Task {
       // this.attachments,
       this.createdAt,
       new Date(),
-      this.completedAt
+      completedAt
     )
   }
 
@@ -131,7 +111,7 @@ export class Task {
     return new Task(
       this.id,
       title,
-      this.subjectId,
+      this.courseId,
       dueDate || this.dueDate,
       priority || this.priority,
       // this.type,
@@ -155,7 +135,7 @@ export class Task {
     return new Task(
       this.id,
       this.title,
-      this.subjectId,
+      this.courseId,
       this.dueDate,
       this.priority,
       // this.type,
@@ -177,7 +157,7 @@ export class Task {
     return new Task(
       this.id,
       this.title,
-      this.subjectId,
+      this.courseId,
       this.dueDate,
       this.priority,
       // this.type,
@@ -197,7 +177,7 @@ export class Task {
 
   // Métodos de consulta
   isOverdue(): boolean {
-    return this.dueDate < new Date() && !(this.status === TaskStatus.DONE || this.status === TaskStatus.DELIVERED)
+    return this.dueDate < new Date() && this.status !== TaskStatus.DONE
   }
 
   isDueSoon(hoursThreshold: number = 24): boolean {
@@ -225,7 +205,6 @@ export class Task {
       case TaskStatus.IN_PROGRESS: return 50
       case TaskStatus.IN_REVIEW: return 80
       case TaskStatus.DONE: return 100
-      case TaskStatus.DELIVERED: return 100
       default: return 0
     }
   }

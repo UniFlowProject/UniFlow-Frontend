@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useSubjects } from '@/hooks/subjects'
+import { useCourses } from '@/hooks/courses'
 import { useCreateTask } from '@/hooks/tasks'
 import { DatePicker } from '@/components/DatePicker'
 import { useForm } from '@tanstack/react-form'
@@ -32,7 +32,7 @@ const createTaskSearchSchema = z.object({
 // Schema alineado con el dominio y los enums
 const createTaskFormSchema = z.object({
   title: z.string().min(1, 'El título es requerido'),
-  subjectId: z.string().min(1, 'Selecciona una materia'),
+  courseId: z.string().min(1, 'Selecciona un curso'),
   dueDate: z.date({
     required_error: 'La fecha de entrega es requerida'
   }),
@@ -55,7 +55,7 @@ function RouteComponent() {
   const navigate = Route.useNavigate();
   const searchParams = Route.useSearch();
   const createTaskMutation = useCreateTask();
-  const subjectsQuery = useSubjects();
+  const coursesQuery = useCourses();
 
   // Helper para extraer mensaje de error
   const getErrorMessage = (errors: any[]): string | null => {
@@ -67,7 +67,7 @@ function RouteComponent() {
   const form = useForm({
     defaultValues: {
       title: '',
-      subjectId: '',
+      courseId: '',
       dueDate: undefined as Date | undefined,
       dueTime: '23:55:00',
       priority: undefined as TaskPriority | undefined,
@@ -83,16 +83,16 @@ function RouteComponent() {
         const [hours, minutes, seconds] = value.dueTime.split(':').map(Number);
         dueDateTime.setHours(hours, minutes, seconds);
 
+        const course = coursesQuery.data?.find(course => course.id === value.courseId);
+        if (!course) return;
+
         const data = {
           title: value.title,
-          subjectId: value.subjectId,
+          courseId: value.courseId,
+          periodId: course.periodId,
           dueDate: dueDateTime.toISOString(),
-          priority: Object.keys(TaskPriority).find(
-            key => TaskPriority[key as keyof typeof TaskPriority] === value.priority
-          ) as keyof typeof TaskPriority,
-          status: Object.keys(TaskStatus).find(
-            key => TaskStatus[key as keyof typeof TaskStatus] === value.status
-          ) as keyof typeof TaskStatus,
+          priority: value.priority!,
+          status: value.status,
           description: value.description,
           estimatedTimeHours: value.estimatedTimeHours,
           tags: value.tags ? value.tags.split(',').map(tag => tag.trim()).filter(Boolean) : []
@@ -158,18 +158,18 @@ function RouteComponent() {
               }}
             </form.Field>
 
-            {/* Materia */}
+            {/* Curso */}
             <form.Field
-              name="subjectId"
+              name="courseId"
               validators={{
-                onSubmit: createTaskFormSchema.shape.subjectId
+                onSubmit: createTaskFormSchema.shape.courseId
               }}
             >
               {(field) => {
                 const errorMessage = getErrorMessage(field.state.meta.errors);
                 return (
                   <div className="space-y-2">
-                    <Label htmlFor={field.name}>Materia *</Label>
+                    <Label htmlFor={field.name}>Curso *</Label>
                     <Select
                       value={field.state.value}
                       onValueChange={(value) => {
@@ -178,12 +178,12 @@ function RouteComponent() {
                       }}
                     >
                       <SelectTrigger className={errorMessage ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Selecciona una materia" />
+                        <SelectValue placeholder="Selecciona un curso" />
                       </SelectTrigger>
                       <SelectContent>
-                        {subjectsQuery.data?.map(subject => (
-                          <SelectItem key={subject.id} value={subject.id}>
-                            {subject.name}
+                        {coursesQuery.data?.map(course => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -307,8 +307,8 @@ function RouteComponent() {
                     <SelectContent>
                       <SelectItem value={TaskStatus.TODO}>To Do</SelectItem>
                       <SelectItem value={TaskStatus.IN_PROGRESS}>En Proceso</SelectItem>
+                      <SelectItem value={TaskStatus.IN_REVIEW}>En Revisión</SelectItem>
                       <SelectItem value={TaskStatus.DONE}>Hecho</SelectItem>
-                      <SelectItem value={TaskStatus.DELIVERED}>Entregado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

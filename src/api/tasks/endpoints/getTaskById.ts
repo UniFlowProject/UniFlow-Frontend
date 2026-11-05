@@ -1,24 +1,10 @@
-import { Task, TaskPriority, TaskStatus } from "@/domain/tasks";
-import { tasksApi } from "@/lib/api/client";
+import { toTask } from "../mappers/taskMapper";
+import type { Task } from "@/domain/tasks";
 import type { GetTaskResponseDto } from "../dto/response.dto";
+import { academicApi } from "@/lib/api/client";
 
 export async function getTaskById(taskId: string): Promise<Task> {
-  const axiosResponse = await tasksApi.get<GetTaskResponseDto>("/tasks/" + taskId)
+  const axiosResponse = await academicApi.get<GetTaskResponseDto>("/tasks/" + taskId)
 
-  const taskData = axiosResponse.data
-
-  return new Task(
-    taskData.id,
-    taskData.title,
-    taskData.subjectId,
-    new Date(taskData.dueDate),
-    TaskPriority[taskData.priority.toUpperCase() as keyof typeof TaskPriority],
-    TaskStatus[taskData.status.replace("-", "_").toUpperCase() as keyof typeof TaskStatus],
-    taskData.description,
-    taskData.estimatedTimeHours,
-    taskData.tags,
-    new Date(taskData.createdAt),
-    new Date(taskData.updatedAt),
-    taskData.completedAt ? new Date(taskData.completedAt) : undefined
-  )
+  return toTask(axiosResponse.data)
 }
