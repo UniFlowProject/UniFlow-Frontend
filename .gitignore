@@ -19,3 +19,4 @@ terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/crash.log
+terraform/backend.hcl
