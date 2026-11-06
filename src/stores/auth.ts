@@ -5,7 +5,6 @@ import { persist } from 'zustand/middleware'
 
 interface ProviderConfig {
   clientId: string
-  clientSecret: string
   redirectUri: string
   scope: string
   authUrl: string
@@ -15,10 +14,9 @@ interface ProviderConfig {
 
 // Configuración de OAuth providers
 // El provider legacy de Google solo se registra si hay credenciales; con Cognito no hacen falta.
-const OAUTH_CONFIG: Partial<Record<"google", ProviderConfig>> = env.VITE_GOOGLE_CLIENT_ID && env.VITE_GOOGLE_CLIENT_SECRET ? {
+const OAUTH_CONFIG: Partial<Record<"google", ProviderConfig>> = env.VITE_GOOGLE_CLIENT_ID ? {
   google: {
     clientId: env.VITE_GOOGLE_CLIENT_ID,
-    clientSecret: env.VITE_GOOGLE_CLIENT_SECRET,
     redirectUri: `${window.location.origin}/auth/callback`,
     scope: 'openid email profile',
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -132,7 +130,6 @@ export const useAuthStore = create<AuthState>()(
           body = JSON.stringify({ code, redirectUri: config.redirectUri })
           // const params = new URLSearchParams({
           //   client_id: config.clientId,
-          //   client_secret: config.clientSecret,
           //   code,
           //   redirect_uri: config.redirectUri,
           //   grant_type: 'authorization_code'
