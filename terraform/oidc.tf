@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "github_actions_assume" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:ref:refs/heads/${var.github_deploy_branch}"]
+      values   = ["repo:${var.github_repo}:environment:${var.github_deploy_environment}"]
     }
   }
 }

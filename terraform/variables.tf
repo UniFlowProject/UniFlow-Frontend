@@ -21,8 +21,8 @@ variable "github_repo" {
   }
 }
 
-variable "github_deploy_branch" {
+variable "github_deploy_environment" {
   type        = string
-  description = "Branch allowed to assume the CI role via OIDC (matches the aws-s3-deploy.yml trigger)"
-  default     = "main"
+  description = "GitHub Actions environment allowed to assume the CI role via OIDC. A job that declares `environment:` gets sub=repo:org/repo:environment:<name>, not the ref form"
+  default     = "production"
 }
