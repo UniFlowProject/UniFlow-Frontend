@@ -65,7 +65,7 @@ Editar `.env` con tus configuraciones. Cada servicio recibe **una URL base compl
 | `VITE_NOTIFICATIONS_SERVICE_URL` | Base de notifications. Ej.: `http://localhost:3003` o `https://<gateway>/api/notifications/v2` |
 | `VITE_NOTIFICATIONS_WEB_APP_URL` | URL del WebSocket/app de notificaciones |
 | `VITE_COGNITO_DOMAIN`, `VITE_COGNITO_CLIENT_ID` | Hosted UI de Cognito |
-| `VITE_APIM_TOKEN`, `VITE_GOOGLE_CLIENT_ID` | Opcionales (legado); si no se definen, no se envía el header de APIM ni se registra el proveedor de Google |
+| `VITE_GOOGLE_CLIENT_ID` | Opcional (legado); si no se define, no se registra el proveedor de Google |
 
 ### Prerrequisitos de producción
 

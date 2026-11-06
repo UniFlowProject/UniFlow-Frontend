@@ -26,9 +26,6 @@ const OAUTH_CONFIG: Partial<Record<"google", ProviderConfig>> = env.VITE_GOOGLE_
   }
 } : {}
 
-const apimHeaders = (): Record<string, string> =>
-  env.VITE_APIM_TOKEN ? { 'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN } : {}
-
 interface AuthState {
   // Estado
   authToken: string | null
@@ -144,7 +141,6 @@ export const useAuthStore = create<AuthState>()(
           headers: {
             // 'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Type': 'application/json',
-            ...apimHeaders(),
           },
           body
         } : {
@@ -152,7 +148,6 @@ export const useAuthStore = create<AuthState>()(
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            ...apimHeaders(),
           },
           body
         }
@@ -182,7 +177,6 @@ export const useAuthStore = create<AuthState>()(
 
         const headers = {
           'Authorization': `Bearer ${accessToken}`,
-          ...apimHeaders(),
         } as any
 
         const response = await fetch(config.userInfoUrl, { headers })
