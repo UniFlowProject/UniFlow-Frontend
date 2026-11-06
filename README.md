@@ -43,8 +43,8 @@ npm install -g pnpm
 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/FabiSax12/UniFlow-Frontend
-cd UniFlow-Frontend
+git clone https://github.com/UniFlowProject/uniflow-frontend
+cd uniflow-frontend
 ```
 
 2. Instalar dependencias
@@ -69,7 +69,9 @@ Editar `.env` con tus configuraciones. Cada servicio recibe **una URL base compl
 ### Prerrequisitos de producción
 
 - `VITE_ACADEMIC_SERVICE_URL` y `VITE_NOTIFICATIONS_SERVICE_URL` deben contener la URL base completa **incluyendo la versión `/v2`** (p. ej. `https://<gateway>/api/academic/v2`); si falta, las peticiones darán 404.
-- El workflow `.github/workflows/aws-s3-deploy.yml` se autentica por OIDC (sin llaves estáticas). Requiere la variable de repositorio `AWS_ROLE_ARN` con el ARN del rol creado en `terraform/oidc.tf` (ver `terraform/outputs.tf`), además de `AWS_REGION` y las variables `VITE_*` del environment `production`.
+- La infraestructura (bucket S3, CloudFront, rol de CI) vive en `infra/` del repositorio central: https://github.com/UniFlowProject/uniflow.
+- El workflow `.github/workflows/aws-s3-deploy.yml` se autentica por OIDC (sin llaves estáticas) y corre en el environment de GitHub `production`; el rol de AWS solo confía en ese environment, así que restríngelo a la rama `main` (Settings > Environments > production > Deployment branches).
+- Variables de repositorio (o del environment) requeridas: `AWS_ROLE_ARN` (salida `github_actions_role_arns`, clave `frontend`, del stack central), `AWS_REGION`, `S3_BUCKET_NAME` (salida `spa_bucket_name`), `CLOUDFRONT_DISTRIBUTION_ID` (salida `cloudfront_distribution_id`; opcional, si falta se omite la invalidación) y las `VITE_*` (`VITE_ACADEMIC_SERVICE_URL`, `VITE_NOTIFICATIONS_SERVICE_URL`, `VITE_NOTIFICATIONS_WEB_APP_URL`, `VITE_COGNITO_DOMAIN`, `VITE_COGNITO_CLIENT_ID`).
 
 4. Ejecutar en modo desarrollo
 ```bash
