@@ -16,7 +16,6 @@ export const env = createEnv({
     VITE_ENV: z.enum(['development', 'production', 'test']),
     VITE_ACADEMIC_SERVICE_URL: z.string().url(),
     VITE_NOTIFICATIONS_SERVICE_URL: z.string().url(),
-    VITE_GOOGLE_CLIENT_ID: z.string().min(1).optional(),
 
     VITE_NOTIFICATIONS_WEB_APP_URL: z.string().url().optional(),
 
