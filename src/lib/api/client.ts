@@ -1,6 +1,5 @@
 import axios, { type AxiosInstance } from "axios"
 import { API_ENDPOINTS } from "./endpoints"
-import { env } from "@/env"
 import { useAuthStore } from "@/stores/auth"
 
 
@@ -13,13 +12,9 @@ const createApiClient = (baseURL: string): AxiosInstance => {
     },
   })
 
-  // Request interceptor - Agregar token de autenticación de usuario y para Azure APIM
+  // Request interceptor - Agregar token de autenticación de usuario
   client.interceptors.request.use(
     (config) => {
-
-      if (env.VITE_APIM_TOKEN) {
-        config.headers["Ocp-Apim-Subscription-Key"] = env.VITE_APIM_TOKEN
-      }
 
       // OAuth token
       const auth_storage = localStorage.getItem("auth-storage")

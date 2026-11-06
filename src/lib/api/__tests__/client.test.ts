@@ -4,7 +4,6 @@ vi.mock("@/env", () => ({
   env: {
     VITE_ACADEMIC_SERVICE_URL: "http://gateway.test/api/academic/v2",
     VITE_NOTIFICATIONS_SERVICE_URL: "http://localhost:3003",
-    VITE_APIM_TOKEN: "token",
   },
 }))
 vi.mock("@/stores/auth", () => ({ useAuthStore: { getState: () => ({ logout: vi.fn() }) } }))
