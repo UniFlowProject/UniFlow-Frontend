@@ -17,7 +17,9 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   client.interceptors.request.use(
     (config) => {
 
-      config.headers["Ocp-Apim-Subscription-Key"] = env.VITE_APIM_TOKEN
+      if (env.VITE_APIM_TOKEN) {
+        config.headers["Ocp-Apim-Subscription-Key"] = env.VITE_APIM_TOKEN
+      }
 
       // OAuth token
       const auth_storage = localStorage.getItem("auth-storage")

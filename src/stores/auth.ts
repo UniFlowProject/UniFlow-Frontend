@@ -14,7 +14,8 @@ interface ProviderConfig {
 }
 
 // Configuración de OAuth providers
-const OAUTH_CONFIG: Record<"google", ProviderConfig> = {
+// El provider legacy de Google solo se registra si hay credenciales; con Cognito no hacen falta.
+const OAUTH_CONFIG: Partial<Record<"google", ProviderConfig>> = env.VITE_GOOGLE_CLIENT_ID && env.VITE_GOOGLE_CLIENT_SECRET ? {
   google: {
     clientId: env.VITE_GOOGLE_CLIENT_ID,
     clientSecret: env.VITE_GOOGLE_CLIENT_SECRET,
@@ -25,7 +26,10 @@ const OAUTH_CONFIG: Record<"google", ProviderConfig> = {
     // tokenUrl: 'https://oauth2.googleapis.com/token',
     userInfoUrl: env.VITE_ACADEMIC_SERVICE_URL + '/students/me'
   }
-}
+} : {}
+
+const apimHeaders = (): Record<string, string> =>
+  env.VITE_APIM_TOKEN ? { 'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN } : {}
 
 interface AuthState {
   // Estado
@@ -143,7 +147,7 @@ export const useAuthStore = create<AuthState>()(
           headers: {
             // 'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Type': 'application/json',
-            'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN,
+            ...apimHeaders(),
           },
           body
         } : {
@@ -151,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN,
+            ...apimHeaders(),
           },
           body
         }
@@ -181,7 +185,7 @@ export const useAuthStore = create<AuthState>()(
 
         const headers = {
           'Authorization': `Bearer ${accessToken}`,
-          'Ocp-Apim-Subscription-Key': env.VITE_APIM_TOKEN,
+          ...apimHeaders(),
         } as any
 
         const response = await fetch(config.userInfoUrl, { headers })
