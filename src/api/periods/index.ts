@@ -6,5 +6,5 @@ export * from './endpoints/deletePeriod';
 export * from './endpoints/getAllPeriods';
 export * from './endpoints/getCurrentPeriod';
 export * from './endpoints/getPeriodById';
-export * from './endpoints/getPeriodSubjects';
+export * from './endpoints/getPeriodCourses';
 export * from './endpoints/updatePeriod';

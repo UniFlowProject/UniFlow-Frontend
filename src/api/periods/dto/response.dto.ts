@@ -1,5 +1,3 @@
-import type { PaginatedResponseDto } from "@/api/shared/dtos/pagination";
-import type { GetSubjectResponseDto } from "@/api/subjects";
 import type { PeriodType } from "@/domain/periods";
 
 export interface GetPeriodResponseDto {
@@ -9,13 +7,23 @@ export interface GetPeriodResponseDto {
   year: number;
   startDate: string;
   endDate: string;
-  studentId: string;
+  userId: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type GetPeriodsResponseDto = PaginatedResponseDto<GetPeriodResponseDto>;
+export interface GetPeriodsResponseDto {
+  items: Array<GetPeriodResponseDto>;
+  pageInfo: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
 
 export interface GetCurrentPeriodResponseDto {
   id: string;
@@ -34,7 +42,7 @@ export interface CreatePeriodResponseDto {
   year: number;
   startDate: string;
   endDate: string;
-  studentId: string;
+  userId: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -47,7 +55,7 @@ export interface GetPeriodByIdResponseDto {
   year: number;
   startDate: string;
   endDate: string;
-  studentId: string;
+  userId: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -60,22 +68,8 @@ export interface UpdatePeriodResponseDto {
   year: number;
   startDate: string;
   endDate: string;
-  studentId: string;
+  userId: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-// Para el endpoint de subjects by period
-export interface SubjectByPeriodResponseDto {
-  id: string;
-  name: string;
-  code: string;
-  professor: string;
-  credits: number;
-  color: string;
-}
-
-export interface GetSubjectsByPeriodResponseDto {
-  subjects: GetSubjectResponseDto[];
 }

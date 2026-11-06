@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Task } from '@/domain/tasks'
 import { TaskStatus, TaskPriority } from '@/domain/tasks'
-import { useSubject } from "@/hooks/subjects"
+import { useCourse } from "@/hooks/courses"
 import { Link } from "@tanstack/react-router"
 import { useCompleteTask } from "@/hooks/tasks/useCompleteTask"
 import { useDeleteTask } from "@/hooks/tasks/useDeleteTask"
@@ -94,17 +94,17 @@ export const columns: ColumnDef<Task>[] = [
     },
   },
   {
-    accessorKey: "course",
+    accessorKey: "courseId",
     header: "Curso",
     cell: ({ row }) => {
-      const { data: subject, isLoading } = useSubject(row.getValue("course"));
+      const { data: course, isLoading } = useCourse(row.getValue("courseId"));
 
       if (isLoading) return <div className="font-mono text-xs">Cargando...</div>
 
-      if (!subject) return <div>-</div>
+      if (!course) return <div>-</div>
 
-      return <Link to={`/dashboard/subjects/$subjectId`} params={{ subjectId: subject.id }} className="flex items-center gap-2 hover:text-blue-500 max-w-min">
-        {subject.name}
+      return <Link to={`/dashboard/courses/$courseId`} params={{ courseId: course.id }} className="flex items-center gap-2 hover:text-blue-500 max-w-min">
+        {course.name}
         <SquareArrowOutUpRight className="size-4" />
       </Link>
     },

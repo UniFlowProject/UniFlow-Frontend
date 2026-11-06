@@ -1,35 +1,22 @@
-import { tasksApi } from "@/lib/api/client";
+import { toTask } from "../mappers/taskMapper";
+import { updateTaskStatus } from "./updateTaskState";
 import type { CreateTaskRequestDto } from "../dto/request.dto";
-import { Task, TaskPriority, TaskStatus } from "@/domain/tasks";
 import type { CreateTaskResponseDto } from "../dto/response.dto";
+import type {Task} from "@/domain/tasks";
+import { academicApi } from "@/lib/api/client";
+import {  TaskStatus } from "@/domain/tasks";
 
-export async function createTask(body: CreateTaskRequestDto): Promise<Task> {
+export async function createTask({ status, ...body }: CreateTaskRequestDto): Promise<Task> {
 
-  const axiosResponse = await tasksApi.post<CreateTaskResponseDto>(
+  const axiosResponse = await academicApi.post<CreateTaskResponseDto>(
     "/tasks",
-    {
-      ...body,
-      priority: body.priority.toLowerCase(),
-      status: body.status.toLowerCase(),
-      type: "assignment"
-    }
+    { ...body, type: "assignment" }
   );
 
-  const taskData = axiosResponse.data;
+  const created = axiosResponse.data
 
-  return new Task(
-    taskData.id,
-    taskData.title,
-    taskData.subjectId,
-    new Date(taskData.dueDate),
-    TaskPriority[taskData.priority.toUpperCase() as keyof typeof TaskPriority],
-    TaskStatus[taskData.status.replace("-", "_").toUpperCase() as keyof typeof TaskStatus],
-    taskData.description,
-    taskData.estimatedTimeHours,
-    taskData.tags,
-    new Date(taskData.createdAt),
-    new Date(taskData.updatedAt),
-    taskData.completedAt ? new Date(taskData.completedAt) : undefined
-  )
+  // The academic API always creates tasks as "todo"; any other initial status needs a status change.
+  if (status === TaskStatus.TODO) return toTask(created)
 
+  return toTask(await updateTaskStatus(created.id, status))
 }

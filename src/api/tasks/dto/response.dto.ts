@@ -1,82 +1,38 @@
-import type { PaginatedResponseDto } from "@/api/shared"
-import type { TaskPriority, TaskStatus, TaskType } from "@/domain/tasks"
+export interface PagedTasksResponseDto {
+  items: Array<GetTaskResponseDto>
+  pageInfo: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
+}
 
 export interface GetTaskResponseDto {
   id: string
+  userId: string
   title: string
-  subjectId: string
+  description: string | null
+  courseId: string
+  periodId: string
   dueDate: string
-  priority: keyof typeof TaskPriority
+  status: string
+  priority: string
   type: string
-  status: keyof typeof TaskStatus
-  description: string
-  estimatedTimeHours: number
-  tags: string[]
+  estimatedTimeHours: number | null
+  actualTimeHours: number | null
+  tags: Array<string>
+  groupMembers: Array<string>
+  attachments: Array<string>
   createdAt: string
   updatedAt: string
   completedAt: string | null
 }
 
-export type GetAllTasksResponseDto = PaginatedResponseDto<GetTaskResponseDto>
+export type CreateTaskResponseDto = GetTaskResponseDto
 
-export interface CreateTaskResponseDto {
-  id: string,
-  title: string,
-  subjectId: string,
-  dueDate: string,
-  priority: keyof typeof TaskPriority,
-  type: keyof typeof TaskType,
-  status: keyof typeof TaskStatus,
-  description: string,
-  estimatedTimeHours: number,
-  tags: string[],
-  createdAt: string,
-  updatedAt: string,
-  completedAt: string | null
-}
+export type UpdateTaskStateResponseDto = GetTaskResponseDto
 
-export interface GetDashboardTasks {
-  upcomingTasks: UpcomingTask[]
-  todayTasks: UpcomingTask[]
-  overdueCount: number
-  totalPending: number
-  completedThisWeek: number
-}
-
-export interface UpcomingTask {
-  id: string
-  title: string
-  subjectName: string
-  subjectCode: string
-  subjectColor: string
-  dueDate: string
-  priority: keyof typeof TaskPriority
-  status: keyof typeof TaskStatus
-  type: string
-}
-
-export type GetTasksBySubjectResponseDto = {
-  subjectId: string
-  count: number
-  tasks: GetTaskResponseDto[]
-}
-export type GetTasksByPeriodResponseDto = {
-  count: number,
-  periodId: string,
-  tasks: GetTaskResponseDto[]
-}
-
-export interface CompletedTaskResponseDto {
-  id: string
-  status: string
-  completedAt: string
-  updatedAt: string
-  message: string
-}
-
-export interface UpdateTaskStateResponseDto {
-  id: string
-  status: string
-  updatedAt: string
-  message: string
-}
+export type CompletedTaskResponseDto = GetTaskResponseDto

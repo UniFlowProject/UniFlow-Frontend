@@ -25,3 +25,4 @@ export interface UpdatePeriodRequestDto {
   endDate?: string;   // ISO date string
   isActive?: boolean;
 }
+export type PeriodFilters = Omit<GetPeriodsRequestDto, "page" | "limit">;

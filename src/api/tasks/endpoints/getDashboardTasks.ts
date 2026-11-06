@@ -1,33 +1,38 @@
-import { tasksApi } from "@/lib/api/client";
-import type { GetDashboardTasks } from "../dto/response.dto";
-import { TaskWithSubject } from "@/domain/tasks/entities/taskWithSubject";
-import { TaskPriority, TaskStatus } from "@/domain/tasks";
+import { listFirstTasks } from "./listTasks";
+import type { TaskPriority} from "@/domain/tasks";
+import { TaskWithCourse } from "@/domain/tasks/entities/taskWithCourse";
+import { TaskStatus } from "@/domain/tasks";
+import { getAllCourses } from "@/api/courses/endpoints/getAllCourses";
 
-export async function getDashboardTasks(): Promise<TaskWithSubject[]> {
+const DASHBOARD_TASKS_LIMIT = 100
+const PENDING_STATUSES = [TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.IN_REVIEW]
 
-  const axiosResponse = await tasksApi.get<GetDashboardTasks>("/tasks/dashboard");
+export async function getDashboardTasks(): Promise<Array<TaskWithCourse>> {
 
-  let tasks: TaskWithSubject[] = []
+  const [tasks, courses] = await Promise.all([
+    // No lower bound on dueDate: overdue and due-today pending tasks must show up.
+    listFirstTasks({
+      status: PENDING_STATUSES,
+      sortBy: "dueDate",
+      sortOrder: "asc",
+    }, DASHBOARD_TASKS_LIMIT),
+    getAllCourses({}),
+  ])
 
-  tasks.push(...axiosResponse.data.todayTasks.map(task => new TaskWithSubject(
-    task.id,
-    task.title,
-    new Date(task.dueDate),
-    TaskPriority[task.priority.toUpperCase() as keyof typeof TaskPriority],
-    task.subjectName,
-    task.subjectCode,
-    TaskStatus[task.status.replace("-", "_").toUpperCase() as keyof typeof TaskStatus]
-  )))
+  const coursesById = new Map(courses.map(course => [course.id, course]))
 
-  tasks.push(...axiosResponse.data.upcomingTasks.map(task => new TaskWithSubject(
-    task.id,
-    task.title,
-    new Date(task.dueDate),
-    TaskPriority[task.priority.toUpperCase() as keyof typeof TaskPriority],
-    task.subjectName,
-    task.subjectCode,
-    TaskStatus[task.status.replace("-", "_").toUpperCase() as keyof typeof TaskStatus]
-  )))
+  return tasks.map(task => {
+    const course = coursesById.get(task.courseId)
 
-  return tasks;
+    return new TaskWithCourse(
+      task.id,
+      task.title,
+      new Date(task.dueDate),
+      task.priority as TaskPriority,
+      task.courseId,
+      course?.name ?? "",
+      course?.code ?? "",
+      task.status as TaskStatus
+    )
+  })
 }

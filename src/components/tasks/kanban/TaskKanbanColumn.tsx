@@ -54,12 +54,6 @@ const getStatusConfig = (status: TaskStatus) => {
         accentColor: "bg-green-500",
         dropColor: "border-green-300 bg-green-50/50 dark:border-green-600 dark:bg-green-900/50"
       }
-    case TaskStatus.DELIVERED:
-      return {
-        color: "text-purple-700 dark:text-purple-300",
-        accentColor: "bg-purple-500",
-        dropColor: "border-purple-300 bg-purple-50/50 dark:border-purple-600 dark:bg-purple-900/50"
-      }
     default:
       return {
         color: "text-gray-700 dark:text-gray-300",
@@ -76,7 +70,6 @@ const sortTasksByDate = (tasks: Task[], columnType: TaskStatus) => {
       console.log('Sorting tasks by due date')
       return tasks.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
     case TaskStatus.DONE:
-    case TaskStatus.DELIVERED:
       console.log('Sorting tasks by completion date')
       return tasks.sort((a, b) => b.completedAt?.getTime()! - a.completedAt?.getTime()!)
     default:

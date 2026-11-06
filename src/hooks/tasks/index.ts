@@ -7,4 +7,4 @@ export * from './useStartTask';
 export * from './useTask';
 export * from './useTasks';
 export * from './useTasksByPeriod';
-export * from './useTasksBySubject';
+export * from './useTasksByCourse';

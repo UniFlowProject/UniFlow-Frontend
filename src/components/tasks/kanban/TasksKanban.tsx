@@ -19,14 +19,14 @@ export const TasksKanban = () => {
         tasks={tasksQuery.data?.filter(task => task.status === TaskStatus.IN_PROGRESS) || []}
       />
       <TaskKanbanColumn
+        title="En revisión"
+        status={TaskStatus.IN_REVIEW}
+        tasks={tasksQuery.data?.filter(task => task.status === TaskStatus.IN_REVIEW) || []}
+      />
+      <TaskKanbanColumn
         title="Hecho"
         status={TaskStatus.DONE}
         tasks={tasksQuery.data?.filter(task => task.status === TaskStatus.DONE) || []}
-      />
-      <TaskKanbanColumn
-        title="Entregado"
-        status={TaskStatus.DELIVERED}
-        tasks={tasksQuery.data?.filter(task => task.status === TaskStatus.DELIVERED) || []}
       />
       {/* {
         tasksQuery.data?.map(task => <TaskKanbanItem task={task} />)

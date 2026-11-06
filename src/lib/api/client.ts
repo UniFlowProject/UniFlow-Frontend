@@ -17,7 +17,9 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   client.interceptors.request.use(
     (config) => {
 
-      config.headers["Ocp-Apim-Subscription-Key"] = env.VITE_APIM_TOKEN
+      if (env.VITE_APIM_TOKEN) {
+        config.headers["Ocp-Apim-Subscription-Key"] = env.VITE_APIM_TOKEN
+      }
 
       // OAuth token
       const auth_storage = localStorage.getItem("auth-storage")
@@ -68,8 +70,7 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   return client
 }
 
-const academicApi = createApiClient(API_ENDPOINTS.academic.base + "/v2")
-const tasksApi = createApiClient(API_ENDPOINTS.tasks.base + "/v2")
-const notificationsApi = createApiClient(API_ENDPOINTS.notifications.base + "/v2")
+const academicApi = createApiClient(API_ENDPOINTS.academic.base)
+const notificationsApi = createApiClient(API_ENDPOINTS.notifications.base)
 
-export { academicApi, tasksApi, notificationsApi }
+export { academicApi, notificationsApi }

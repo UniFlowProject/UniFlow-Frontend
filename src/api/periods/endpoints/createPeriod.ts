@@ -18,7 +18,7 @@ export async function createPeriod(body: CreatePeriodRequestDto): Promise<Period
     axiosResponse.data.year,
     new Date(axiosResponse.data.startDate),
     new Date(axiosResponse.data.endDate),
-    axiosResponse.data.studentId,
+    axiosResponse.data.userId,
     axiosResponse.data.isActive,
     new Date(axiosResponse.data.createdAt),
     new Date(axiosResponse.data.updatedAt)

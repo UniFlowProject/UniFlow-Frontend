@@ -2,7 +2,7 @@ import { GoBackButton } from '@/components/GoBackButton';
 import { PeriodSelector } from '@/components/periods/PeriodSelector';
 import { PeriodStats } from '@/components/periods/PeriodStats';
 import SectionTitle from '@/components/SectionTitle'
-import { SubjectsGrid } from '@/components/subjects/SubjectsGrid';
+import { CoursesGrid } from '@/components/courses/CoursesGrid';
 import { TaskKanbanBoard } from '@/components/tasks/kanban/TaskKanbanBoard';
 import { TasksTable } from '@/components/tasks/TasksTable2';
 import { Button } from '@/components/ui/button';
@@ -46,13 +46,13 @@ function RouteComponent() {
       <div className='flex flex-row justify-between items-center mb-4'>
         <SectionTitle>Cursos</SectionTitle>
         <Button className='cursor-pointer' size="sm" color="primary" asChild>
-          <Link to='/dashboard/subjects/create' className='flex items-center justify-center gap-2'>
+          <Link to='/dashboard/courses/create' className='flex items-center justify-center gap-2'>
             <span className='inline'>Añadir Curso</span>
             <Plus className='h-4 w-4' />
           </Link>
         </Button>
       </div>
-      <SubjectsGrid periodId={periodId} />
+      <CoursesGrid periodId={periodId} />
     </div>
 
     <Tabs value={searchParams.tab || "table"} onValueChange={handleTabChange} className="w-full mt-8">

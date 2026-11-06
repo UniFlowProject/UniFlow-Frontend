@@ -3,5 +3,5 @@ export enum TaskStatus {
   IN_PROGRESS = 'in-progress',
   IN_REVIEW = 'in-review',
   DONE = 'done',
-  DELIVERED = 'delivered'
+  CANCELLED = 'cancelled'
 }

@@ -1,8 +1,7 @@
-import { tasksApi } from "@/lib/api/client";
+import { updateTaskStatus } from "./updateTaskState";
 import type { CompletedTaskResponseDto } from "../dto/response.dto";
+import { TaskStatus } from "@/domain/tasks";
 
 export async function completeTask(taskId: string): Promise<CompletedTaskResponseDto> {
-  const axiosResponse = await tasksApi.patch<CompletedTaskResponseDto>(`/tasks/${taskId}/complete`);
-
-  return axiosResponse.data
+  return updateTaskStatus(taskId, TaskStatus.DONE)
 }

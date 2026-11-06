@@ -1,10 +1,10 @@
 import { Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type { TaskWithSubject } from "@/domain/tasks/entities/taskWithSubject"
+import type { TaskWithCourse } from "@/domain/tasks/entities/taskWithCourse"
 import { Link } from "@tanstack/react-router"
 
 interface Props {
-  task: TaskWithSubject
+  task: TaskWithCourse
 }
 
 export const DashboardTaskCardCompact = ({ task }: Props) => {
@@ -30,7 +30,7 @@ export const DashboardTaskCardCompact = ({ task }: Props) => {
       </div>
 
       <p className="text-muted-foreground text-xs truncate">
-        {task.subjectName} | {task.subjectCode}
+        {task.courseName} | {task.courseCode}
       </p>
 
       <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
